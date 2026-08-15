@@ -1,0 +1,13 @@
+# 本地工具目录
+.sisyphus/
+
+# macOS
+.DS_Store
+
+# 编辑器
+.idea/
+.vscode/
+
+# 构建产物
+target/
+*.class
