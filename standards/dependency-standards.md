@@ -60,6 +60,27 @@ mvn dependency:tree -Dincludes=com.google.guava
 
 - 冲突修复后验证：构建 + 相关测试通过
 
+### 4.5 数据库驱动版本（MySQL 实战红线）
+
+- **MySQL 8 服务器必须配 Connector/J 8.x**（Spring Boot 3.x 已通过 BOM 管理版本，无需手写），**禁止 5.1.x 旧驱动**：旧驱动配 MySQL 8 有一串兼容问题——`characterEncoding=utf8mb4` 报 `Unsupported character encoding`、时区/加密协议（caching_sha2_password）不兼容、emoji 乱码
+- 驱动版本统一由 Spring Boot BOM 管理，不手写版本号；确需覆盖时在父 pom `dependencyManagement` 声明
+
+```xml
+<!-- ✅ 正确：由 Spring Boot BOM 管理版本，不写版本号 -->
+<dependency>
+    <groupId>com.mysql</groupId>
+    <artifactId>mysql-connector-j</artifactId>
+    <scope>runtime</scope>
+</dependency>
+
+<!-- ❌ 错误：手写 5.1.x 旧驱动版本（配 MySQL 8 会踩字符集/时区/加密协议坑） -->
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>5.1.49</version>
+</dependency>
+```
+
 ### 5. 禁止事项
 
 - ❌ 传递依赖带进来的多余库不清理（体积 + 安全面）
@@ -76,3 +97,4 @@ mvn dependency:tree -Dincludes=com.google.guava
 - [ ] 无同一库多版本
 - [ ] 冲突已通过 dependencyManagement 解决，非盲目 exclusion
 - [ ] 新依赖有用途说明
+- [ ] MySQL 8 → Connector/J 8.x（BOM 管理），无 5.1 旧驱动
