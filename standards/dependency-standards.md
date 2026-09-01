@@ -81,6 +81,57 @@ mvn dependency:tree -Dincludes=com.google.guava
 </dependency>
 ```
 
+### 4.6 接口文档依赖（springdoc / knife4j，接口项目必配）
+
+- **Controller 接口项目必须引入 springdoc-openapi**（OpenAPI 注解 `@Tag`/`@Operation`/`@Schema` 依赖它才生效，见 java-code-standards api-doc-standards.md）；版本由 Spring Boot BOM 管理，不手写版本号
+
+```xml
+<!-- ✅ Spring Boot 3.x：官方 starter（含 swagger-ui），版本由 BOM 管理 -->
+<dependency>
+    <groupId>org.springdoc</groupId>
+    <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+</dependency>
+
+<!-- Spring Boot 2.x 用：springdoc-openapi-ui -->
+```
+
+- 团队要 knife4j 增强 UI（离线导出/权限控制/OpenAPI3 聚合）→ 再加 knife4j starter，版本必须与 springdoc 兼容对齐（knife4j 依赖 springdoc 实现，配错版本注解不生效）
+
+```xml
+<dependency>
+    <groupId>com.github.xiaoymin</groupId>
+    <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+    <version>4.x.x</version>   <!-- 版本与 springdoc-openapi 兼容对齐 -->
+</dependency>
+```
+
+- 文档开关按环境配置：`springdoc.api-docs.enabled` dev/qa 开、online 关（见 java-code-standards api-doc-standards.md）
+- 纯内部/无 HTTP 接口的模块（如仅 Job/Listener 的 service 模块）不需要该依赖
+
+### 4.7 日志依赖（logback，默认即有，禁重复引）
+
+- **Spring Boot 默认 Logback**（`spring-boot-starter-logging` 随 `spring-boot-starter-web` 传递引入），**无需也不应额外加 logback 依赖**——重复显式引 logback-classic 可能版本冲突
+- 项目必须提供 `resources/logback-spring.xml` 自定义配置（控制台 + 滚动文件 + 环境级 level，见 java-code-standards 04-logging-standards.md 与 `04-templates/logback-spring.xml`）
+- 仅当团队明确改用 **Log4j2**：`spring-boot-starter-web`（或 `spring-boot-starter`）排除 `spring-boot-starter-logging`，再显式引 `spring-boot-starter-log4j2`；**Logback 与 Log4j2 禁止并存**（ClassLoader 里两个日志实现，输出混乱）
+
+```xml
+<!-- ✅ 改用 Log4j2：排除默认 logback -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-log4j2</artifactId>
+</dependency>
+```
+
 ### 5. 禁止事项
 
 - ❌ 传递依赖带进来的多余库不清理（体积 + 安全面）
@@ -98,3 +149,5 @@ mvn dependency:tree -Dincludes=com.google.guava
 - [ ] 冲突已通过 dependencyManagement 解决，非盲目 exclusion
 - [ ] 新依赖有用途说明
 - [ ] MySQL 8 → Connector/J 8.x（BOM 管理），无 5.1 旧驱动
+- [ ] 接口项目已引 springdoc/knife4j（无接口模块除外），文档开关按环境配置
+- [ ] 日志：默认 Logback 无重复引；Log4j2 已排除 logback，未并存

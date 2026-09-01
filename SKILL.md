@@ -21,6 +21,7 @@ description: 约束 AI 生成构建配置的规范集（Maven pom/依赖管理/�
 - 第三方依赖走 BOM；插件版本进 pluginManagement
 - 依赖 scope 正确（test 依赖必 test）；禁 LATEST/RELEASE
 - 冲突用 dependencyManagement 统一版本解决，禁盲目 exclusion
+- 接口项目必配 springdoc/knife4j（OpenAPI 注解依赖）；日志默认 Logback 禁重复引、Log4j2 禁并存
 - 依赖单向：admin → service → domain → common，禁循环依赖
 - 跨模块复用下沉 common，禁模块间复制代码
 
